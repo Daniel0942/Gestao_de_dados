@@ -26,6 +26,7 @@ def criarTabelas():
         data_e_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (username) REFERENCES users(username)
     )""")
+    
     conectar.commit()
     cursor.close()
     conectar.close()

@@ -14,9 +14,9 @@ def logar_usuario():
 
     conectar = Conexao()
     cursor = conectar.cursor(dictionary=True)
-    cursor.execute("SELECT username, password FROM users")
-    lista = cursor.fetchall()
-    lista = lista[0]
+    cursor.execute("SELECT username, password FROM users WHERE username = %s", (username,))
+    lista = cursor.fetchone()
+
     if lista["username"] == username and lista["password"] == password:
         print("Logado com sucesso")
         session["username"] = username
@@ -71,3 +71,44 @@ def adicionar_dados():
 
     return redirect(url_for("dados_index"))
 
+@app.route("/dados/<int:username_id>", methods=["GET"])
+def form_edit_dados(username_id):
+    conectar = Conexao()
+    cursor = conectar.cursor(dictionary=True)
+    cursor.execute("SELECT titulo, msg FROM dados WHERE id = %s", (username_id,))
+    dados = cursor.fetchall()
+    dados = dados[0]
+
+    data = {
+        "username_id": username_id,
+        "titulo": dados["titulo"],
+        "msg": dados["msg"]
+    }
+    cursor.close()
+    conectar.close()
+    return render_template("dados.html", dados_edit = data)
+
+@app.route("/dados/<int:username_id>", methods=["POST"])
+def editar_dados(username_id):
+    if request.form.get('_method') == 'PUT':
+
+        titulo = request.form["titulo"]
+        msg = request.form["msg"]
+
+        conectar = Conexao()
+        cursor = conectar.cursor()
+        cursor.execute("UPDATE dados SET titulo = %s, msg = %s WHERE id = %s", (titulo, msg, username_id))
+        conectar.commit()
+        cursor.close()
+        conectar.close()
+        return redirect(url_for("dados_index"))
+
+@app.route("/dados/deletar/<int:username_id>", methods=["GET"])
+def deletar_dados(username_id):
+    conectar = Conexao()
+    cursor = conectar.cursor()
+    cursor.execute("DELETE FROM dados WHERE id = %s", (username_id,))
+    conectar.commit()
+    cursor.close()
+    conectar.close()
+    return redirect(url_for("dados_index"))
